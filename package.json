@@ -1,0 +1,19 @@
+{
+  "name": "victory-force",
+  "version": "0.0.1",
+  "description": "force component for victory",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boygirl/victory-force.git"
+  },
+  "author": "Lauren Eastridge",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/boygirl/victory-force/issues"
+  },
+  "homepage": "https://github.com/boygirl/victory-force",
+  "scripts": {
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
