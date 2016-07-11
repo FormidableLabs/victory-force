@@ -7,8 +7,9 @@ import Node from "./node";
 export default class ForceChart extends React.Component {
   static propTypes = {
     forces: React.PropTypes.object,
-    height: CustomPropTypes.nonNegative,
     nodes: React.PropTypes.array,
+
+    height: CustomPropTypes.nonNegative,
     width: CustomPropTypes.nonNegative,
     standalone: PropTypes.bool,
     dataComponent: PropTypes.element,
