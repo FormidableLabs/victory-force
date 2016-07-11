@@ -12,8 +12,12 @@
     "url": "https://github.com/boygirl/victory-force/issues"
   },
   "homepage": "https://github.com/boygirl/victory-force",
-  "scripts": {
+  "scripts": {},
+  "dependencies": {
+    "builder": "^2.10.1",
+    "builder-victory-component": "^2.3.0"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "builder-victory-component-dev": "^2.3.0"
+  }
 }
