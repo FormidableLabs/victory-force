@@ -3,7 +3,7 @@ import { VictoryScatter } from "victory-chart";
 import { PropTypes as CustomPropTypes, VictoryContainer } from "victory-core";
 import { forceSimulation } from "d3-force";
 
-export default class ForceChart extends React.Component {
+export default class VictoryForce extends React.Component {
   static propTypes = {
     forces: React.PropTypes.object,
     nodes: React.PropTypes.array,
@@ -76,6 +76,7 @@ export default class ForceChart extends React.Component {
         labelComponent={props.labelComponent}
         groupComponent={props.groupComponent}
         theme={props.theme}
+        animate={false}
         standalone={false}
         padding={props.padding}
       />
