@@ -2,17 +2,22 @@ import React, { PropTypes } from "react";
 import { VictoryScatter } from "victory-chart";
 import { PropTypes as CustomPropTypes, VictoryContainer } from "victory-core";
 import { forceSimulation } from "d3-force";
+import omit from "lodash/omit";
 
 export default class VictoryForce extends React.Component {
   static propTypes = {
     forces: React.PropTypes.object,
-    nodes: React.PropTypes.array,
+    data: React.PropTypes.array,
 
     height: CustomPropTypes.nonNegative,
     width: CustomPropTypes.nonNegative,
     standalone: PropTypes.bool,
-    nodeComponent: PropTypes.element,
+    dataComponent: PropTypes.element,
     labelComponent: PropTypes.element,
+    labels: PropTypes.oneOfType([
+      PropTypes.func,
+      PropTypes.array
+    ]),
     containerComponent: PropTypes.element,
     groupComponent: PropTypes.element,
     padding: PropTypes.oneOfType([
@@ -24,7 +29,21 @@ export default class VictoryForce extends React.Component {
         right: PropTypes.number
       })
     ]),
-    theme: PropTypes.object
+    theme: PropTypes.object,
+    style: PropTypes.shape({
+      parent: PropTypes.object,
+      data: PropTypes.object,
+      labels: PropTypes.object
+    }),
+    events: PropTypes.arrayOf(PropTypes.shape({
+      target: PropTypes.oneOf(["data", "labels", "parent"]),
+      eventKey: PropTypes.oneOfType([
+        PropTypes.func,
+        CustomPropTypes.allOfType([CustomPropTypes.integer, CustomPropTypes.nonNegative]),
+        PropTypes.string
+      ]),
+      eventHandlers: PropTypes.object
+    }))
   }
 
   static defaultProps = {
@@ -38,14 +57,14 @@ export default class VictoryForce extends React.Component {
   componentWillMount() {
     this.simulation = forceSimulation()
       .on("tick", this.forceUpdate.bind(this))
-      .nodes(this.props.nodes);
+      .nodes(this.props.data);
 
     this.assignForces(this.props.forces);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.nodes !== nextProps.nodes) {
-      this.simulation.nodes(nextProps.nodes);
+    if (this.props.data !== nextProps.data) {
+      this.simulation.nodes(nextProps.data);
     }
 
     if (this.props.forces !== nextProps.forces) {
@@ -67,18 +86,13 @@ export default class VictoryForce extends React.Component {
   }
 
   renderData(props) {
+    const ownProps = ["containerComponent", "standalone", "animate", "forces"];
+    const scatterProps = omit(props, ownProps);
     return (
       <VictoryScatter
-        width={props.width}
-        height={props.height}
-        data={props.nodes}
-        dataComponent={props.nodeComponent}
-        labelComponent={props.labelComponent}
-        groupComponent={props.groupComponent}
-        theme={props.theme}
+        {...scatterProps}
         animate={false}
         standalone={false}
-        padding={props.padding}
       />
     );
   }
@@ -94,7 +108,7 @@ export default class VictoryForce extends React.Component {
   renderGroup(children, style) {
     return React.cloneElement(
       this.props.groupComponent,
-      { role: "presentation", style},
+      { role: "presentation", style },
       children
     );
   }
