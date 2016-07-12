@@ -1,8 +1,7 @@
 import React, { PropTypes } from "react";
+import { VictoryScatter } from "victory-chart";
 import { PropTypes as CustomPropTypes, VictoryContainer } from "victory-core";
 import { forceSimulation } from "d3-force";
-
-import Node from "./node";
 
 export default class ForceChart extends React.Component {
   static propTypes = {
@@ -12,14 +11,26 @@ export default class ForceChart extends React.Component {
     height: CustomPropTypes.nonNegative,
     width: CustomPropTypes.nonNegative,
     standalone: PropTypes.bool,
-    dataComponent: PropTypes.element,
+    nodeComponent: PropTypes.element,
+    labelComponent: PropTypes.element,
     containerComponent: PropTypes.element,
-    groupComponent: PropTypes.element
+    groupComponent: PropTypes.element,
+    padding: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.shape({
+        top: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+        right: PropTypes.number
+      })
+    ]),
+    theme: PropTypes.object
   }
 
   static defaultProps = {
+    width: 400,
+    height: 400,
     standalone: true,
-    dataComponent: <Node />,
     containerComponent: <VictoryContainer/>,
     groupComponent: <g/>
   }
@@ -56,12 +67,19 @@ export default class ForceChart extends React.Component {
   }
 
   renderData(props) {
-    return props.nodes.map((node) => {
-      return React.cloneElement(
-        props.dataComponent,
-        {}
-      );
-    });
+    return (
+      <VictoryScatter
+        width={props.width}
+        height={props.height}
+        data={props.nodes}
+        dataComponent={props.nodeComponent}
+        labelComponent={props.labelComponent}
+        groupComponent={props.groupComponent}
+        theme={props.theme}
+        standalone={false}
+        padding={props.padding}
+      />
+    );
   }
 
   renderContainer(props, group) {
