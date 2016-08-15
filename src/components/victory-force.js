@@ -99,9 +99,8 @@ export default class VictoryForce extends React.Component {
   }
 
   componentWillMount() {
-    this.simulation = forceSimulation()
+    this.simulation = forceSimulation(this.props.data)
       .on("tick", this.forceUpdate.bind(this))
-      .nodes(this.props.data)
       .alphaDecay(this.props.alphaDecay);
 
     this.assignForces(this.props);
@@ -162,7 +161,7 @@ export default class VictoryForce extends React.Component {
   }
 
   renderLinks(props) {
-    if (!props.links || !props.links.length) {
+    if (!props.links) {
       return null;
     }
 
