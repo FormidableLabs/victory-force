@@ -12,17 +12,19 @@
     "url": "https://github.com/boygirl/victory-force/issues"
   },
   "homepage": "https://github.com/boygirl/victory-force",
-  "scripts": {},
+  "scripts": {
+    "start": "builder run hot"
+  },
   "dependencies": {
     "builder": "^2.10.1",
     "builder-victory-component": "^2.3.0",
-    "d3-force": "^1.0.0",
-    "victory-chart": "^10.0.0",
-    "victory-core": "^4.3.0"
+    "d3-force": "^1.0.2",
+    "victory-chart": "^10.3.0",
+    "victory-core": "^4.6.1"
   },
   "devDependencies": {
     "builder-victory-component-dev": "^2.3.0",
-    "react": "^15.2.1",
-    "react-dom": "^15.2.1"
+    "react": "^15.3.0",
+    "react-dom": "^15.3.0"
   }
 }
