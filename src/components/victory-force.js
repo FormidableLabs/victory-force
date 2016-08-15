@@ -4,9 +4,9 @@ import Domain from "victory-chart/lib/helpers/domain";
 import {
   PropTypes as CustomPropTypes, VictoryContainer, Helpers } from "victory-core";
 import { forceSimulation } from "d3-force";
-import { omit } from "lodash";
+import { omit, pick } from "lodash";
 
-function Link({datum, x, y, style, scale, accessor}) {
+function Link({x, y, style, datum, scale, accessor}) {
   return (
     <line
       style={style}
@@ -19,11 +19,11 @@ function Link({datum, x, y, style, scale, accessor}) {
 
 export default class VictoryForce extends React.Component {
   static propTypes = {
-    forces: React.PropTypes.object,
-    data: React.PropTypes.array,
-    links: React.PropTypes.array,
-    alpha: React.PropTypes.number,
-    alphaDecay: React.PropTypes.number,
+    forces: PropTypes.object,
+    data: PropTypes.array,
+    links: PropTypes.array,
+    alpha: PropTypes.number,
+    alphaDecay: PropTypes.number,
 
     domain: PropTypes.oneOfType([
       CustomPropTypes.domain,
@@ -57,7 +57,8 @@ export default class VictoryForce extends React.Component {
     style: PropTypes.shape({
       parent: PropTypes.object,
       data: PropTypes.object,
-      labels: PropTypes.object
+      labels: PropTypes.object,
+      links: PropTypes.object
     }),
     events: PropTypes.arrayOf(PropTypes.shape({
       target: PropTypes.oneOf(["data", "labels", "parent"]),
@@ -86,7 +87,6 @@ export default class VictoryForce extends React.Component {
     x: "x",
     y: "y",
     data: [],
-    links: [],
     forces: {},
     alpha: 1,
     alphaDecay: 0.06,
@@ -129,8 +129,10 @@ export default class VictoryForce extends React.Component {
     Object.keys(props.forces).forEach((key) => {
       const force = props.forces[key];
       this.simulation.force(key, force);
+      // TODO: remove previous forces
     });
 
+    // re-heat the simulation and restart the timer
     this.simulation.alpha(props.alpha).restart();
   }
 
@@ -146,13 +148,15 @@ export default class VictoryForce extends React.Component {
 
   renderData(props) {
     const scatterProps = omit(props, [
-      "containerComponent", "standalone", "animate", "forces", "linkComponent"
+      "containerComponent", "standalone", "animate", "forces", "linkComponent",
+      "alpha", "alphaDecay", "style"
     ]);
 
     return (
       <VictoryScatter
         {...scatterProps}
         standalone={false}
+        style={pick(props.style, ["labels", "data"])}
       />
     );
   }
@@ -162,12 +166,11 @@ export default class VictoryForce extends React.Component {
       return null;
     }
 
-    const scatterProps = omit(props, [
-      "containerComponent", "standalone", "animate", "forces", "data", "links",
-      "style", "dataComponent", "linkComponent", "events"
+    const scatterProps = pick(props, [
+      "groupComponent", "height", "width", "domain", "theme"
     ]);
 
-    const dataComponent = React.cloneElement(props.linkComponent, {
+    const linkComponent = React.cloneElement(props.linkComponent, {
       ...props.linkComponent.props,
       accessor: {
         x: Helpers.createAccessor(props.x),
@@ -180,11 +183,10 @@ export default class VictoryForce extends React.Component {
         {...scatterProps}
         data={props.links}
         standalone={false}
-        x={["source", props.x]}
+        x={["source", props.x]} // currently doesn't work with function accessor
         y={["source", props.y]}
-        dataComponent={dataComponent}
+        dataComponent={linkComponent}
         style={{
-          ...props.style,
           data: props.style.links
         }}
       />
@@ -194,15 +196,15 @@ export default class VictoryForce extends React.Component {
   renderContainer(props, group) {
     return React.cloneElement(
       props.containerComponent,
-      {width: props.width, height: props.height, style: props.style.parent},
+      { width: props.width, height: props.height, style: props.style.parent },
       group
     );
   }
 
-  renderGroup(data, links, style) {
+  renderGroup(data, links) {
     return React.cloneElement(
       this.props.groupComponent,
-      { role: "presentation", style },
+      { role: "presentation" },
       links,
       data
     );
@@ -210,10 +212,9 @@ export default class VictoryForce extends React.Component {
 
   render() {
     const props = this.getProps(this.props);
-    const baseStyle = {};
     const data = this.renderData(props);
     const links = this.renderLinks(props);
-    const group = this.renderGroup(data, links, baseStyle.parent);
+    const group = this.renderGroup(data, links);
     return props.standalone ? this.renderContainer(props, group) : group;
   }
 }

@@ -12,12 +12,10 @@ export default class App extends React.Component {
 
   removeNode(datum) {
     const {nodes, links} = this.state;
-    const node = nodes.find((n) => n.index === datum.index);
     this.setState({
-      nodes: nodes.filter((n) => n !== node),
-      links: links.filter((link) => {
-        return link.source.index !== node.index
-          && link.target.index !== node.index;
+      nodes: nodes.filter((node) => node.index !== datum.index),
+      links: links.filter(({source, target}) => {
+        return source.index !== datum.index && target.index !== datum.index;
       })
     });
   }
