@@ -1,2 +1,2 @@
-import { VictoryForce } from "victory-force";
+import VictoryForce from "./components/victory-force";
 export { VictoryForce };
