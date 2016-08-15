@@ -5,6 +5,23 @@ import { VictoryForce } from "../src/";
 import * as tree from "./tree-data";
 
 export default class App extends React.Component {
+  state = {
+    nodes: tree.nodes,
+    links: tree.links
+  }
+
+  removeNode(datum) {
+    const {nodes, links} = this.state;
+    const node = nodes.find((n) => n.index === datum.index);
+    this.setState({
+      nodes: nodes.filter((n) => n !== node),
+      links: links.filter((link) => {
+        return link.source.index !== node.index
+          && link.target.index !== node.index;
+      })
+    });
+  }
+
   render() {
     const containerStyle = {
       // display: "flex",
@@ -26,13 +43,14 @@ export default class App extends React.Component {
         <h1>VictoryForce Demo</h1>
 
         <div style={containerStyle}>
+          <div>click a node to remove it (and its links)</div>
 
           <VictoryForce
-            data={tree.nodes}
-            links={tree.links}
+            data={this.state.nodes}
+            links={this.state.links}
             forces={{
               charge: forceManyBody(),
-              link: forceLink(tree.links).distance(20).strength(1),
+              link: forceLink(this.state.links).distance(20).strength(1),
               x: forceX(),
               y: forceY()
             }}
@@ -43,7 +61,17 @@ export default class App extends React.Component {
                 strokeWidth: 1
               }
             }}
-            size={2}
+            size={3}
+            events={[
+              {
+                target: "data",
+                eventHandlers: {
+                  onClick: (e, {datum}) => {
+                    this.removeNode(datum);
+                  }
+                }
+              }
+            ]}
           />
 
         </div>
