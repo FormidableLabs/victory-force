@@ -6,11 +6,7 @@ import {
 import { forceSimulation } from "d3-force";
 import { omit } from "lodash";
 
-function Link({datum, xAccessor, yAccessor, x, y, style, scale}) {
-  const accessor = {
-    x: Helpers.createAccessor(xAccessor),
-    y: Helpers.createAccessor(yAccessor)
-  };
+function Link({datum, x, y, style, scale, accessor}) {
   return (
     <line
       style={style}
@@ -26,6 +22,8 @@ export default class VictoryForce extends React.Component {
     forces: React.PropTypes.object,
     data: React.PropTypes.array,
     links: React.PropTypes.array,
+    alpha: React.PropTypes.number,
+    alphaDecay: React.PropTypes.number,
 
     domain: PropTypes.oneOfType([
       CustomPropTypes.domain,
@@ -90,6 +88,8 @@ export default class VictoryForce extends React.Component {
     data: [],
     links: [],
     forces: {},
+    alpha: 1,
+    alphaDecay: 0.06,
     width: 400,
     height: 400,
     standalone: true,
@@ -101,9 +101,10 @@ export default class VictoryForce extends React.Component {
   componentWillMount() {
     this.simulation = forceSimulation()
       .on("tick", this.forceUpdate.bind(this))
-      .nodes(this.props.data);
+      .nodes(this.props.data)
+      .alphaDecay(this.props.alphaDecay);
 
-    this.assignForces(this.props.forces);
+    this.assignForces(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -111,8 +112,12 @@ export default class VictoryForce extends React.Component {
       this.simulation.nodes(nextProps.data);
     }
 
+    if (this.props.alphaDecay !== nextProps.alphaDecay) {
+      this.simulation.alphaDecay(nextProps.alphaDecay);
+    }
+
     if (this.props.forces !== nextProps.forces) {
-      this.assignForces(nextProps.forces);
+      this.assignForces(nextProps);
     }
   }
 
@@ -120,13 +125,13 @@ export default class VictoryForce extends React.Component {
     this.simulation.stop();
   }
 
-  assignForces(forces) {
-    Object.keys(forces).forEach((key) => {
-      const force = forces[key];
+  assignForces(props) {
+    Object.keys(props.forces).forEach((key) => {
+      const force = props.forces[key];
       this.simulation.force(key, force);
     });
 
-    this.simulation.alpha(1).restart();
+    this.simulation.alpha(props.alpha).restart();
   }
 
   getProps(props) {
@@ -140,10 +145,10 @@ export default class VictoryForce extends React.Component {
   }
 
   renderData(props) {
-    const otherProps = [
+    const scatterProps = omit(props, [
       "containerComponent", "standalone", "animate", "forces", "linkComponent"
-    ];
-    const scatterProps = omit(props, otherProps);
+    ]);
+
     return (
       <VictoryScatter
         {...scatterProps}
@@ -153,11 +158,23 @@ export default class VictoryForce extends React.Component {
   }
 
   renderLinks(props) {
-    const otherProps = [
+    if (!props.links || !props.links.length) {
+      return null;
+    }
+
+    const scatterProps = omit(props, [
       "containerComponent", "standalone", "animate", "forces", "data", "links",
-      "style", "dataComponent", "linkComponent"
-    ];
-    const scatterProps = omit(props, otherProps);
+      "style", "dataComponent", "linkComponent", "events"
+    ]);
+
+    const dataComponent = React.cloneElement(props.linkComponent, {
+      ...props.linkComponent.props,
+      accessor: {
+        x: Helpers.createAccessor(props.x),
+        y: Helpers.createAccessor(props.y)
+      }
+    });
+
     return (
       <VictoryScatter
         {...scatterProps}
@@ -165,11 +182,7 @@ export default class VictoryForce extends React.Component {
         standalone={false}
         x={["source", props.x]}
         y={["source", props.y]}
-        dataComponent={React.cloneElement(props.linkComponent, {
-          ...props.linkComponent.props,
-          xAccessor: props.x,
-          yAccessor: props.y
-        })}
+        dataComponent={dataComponent}
         style={{
           ...props.style,
           data: props.style.links
@@ -190,8 +203,8 @@ export default class VictoryForce extends React.Component {
     return React.cloneElement(
       this.props.groupComponent,
       { role: "presentation", style },
-      data,
-      links
+      links,
+      data
     );
   }
 
