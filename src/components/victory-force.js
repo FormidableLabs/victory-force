@@ -4,7 +4,7 @@ import Domain from "victory-chart/lib/helpers/domain";
 import {
   PropTypes as CustomPropTypes, VictoryContainer, Helpers } from "victory-core";
 import { forceSimulation } from "d3-force";
-import { omit, pick } from "lodash";
+import { pick } from "lodash";
 
 function Link({x, y, style, datum, scale, accessor}) {
   return (
@@ -20,7 +20,7 @@ function Link({x, y, style, datum, scale, accessor}) {
 export default class VictoryForce extends React.Component {
   static propTypes = {
     forces: PropTypes.object,
-    data: PropTypes.array,
+    nodes: PropTypes.array,
     links: PropTypes.array,
     alpha: PropTypes.number,
     alphaDecay: PropTypes.number,
@@ -35,7 +35,7 @@ export default class VictoryForce extends React.Component {
     height: CustomPropTypes.nonNegative,
     width: CustomPropTypes.nonNegative,
     standalone: PropTypes.bool,
-    dataComponent: PropTypes.element,
+    nodeComponent: PropTypes.element,
     linkComponent: PropTypes.element,
     labelComponent: PropTypes.element,
     labels: PropTypes.oneOfType([
@@ -56,7 +56,7 @@ export default class VictoryForce extends React.Component {
     theme: PropTypes.object,
     style: PropTypes.shape({
       parent: PropTypes.object,
-      data: PropTypes.object,
+      nodes: PropTypes.object,
       labels: PropTypes.object,
       links: PropTypes.object
     }),
@@ -86,7 +86,7 @@ export default class VictoryForce extends React.Component {
   static defaultProps = {
     x: "x",
     y: "y",
-    data: [],
+    nodes: [],
     forces: {},
     alpha: 1,
     alphaDecay: 0.06,
@@ -99,7 +99,7 @@ export default class VictoryForce extends React.Component {
   }
 
   componentWillMount() {
-    this.simulation = forceSimulation(this.props.data)
+    this.simulation = forceSimulation(this.props.nodes)
       .on("tick", this.forceUpdate.bind(this))
       .alphaDecay(this.props.alphaDecay);
 
@@ -107,8 +107,8 @@ export default class VictoryForce extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.data !== nextProps.data) {
-      this.simulation.nodes(nextProps.data);
+    if (this.props.nodes !== nextProps.nodes) {
+      this.simulation.nodes(nextProps.nodes);
     }
 
     if (this.props.alphaDecay !== nextProps.alphaDecay) {
@@ -136,26 +136,34 @@ export default class VictoryForce extends React.Component {
   }
 
   getProps(props) {
+    const {nodes: data, domain, x, y} = props
+    const modifiedProps = {data, domain, x, y}
     return {
       ...props,
       domain: {
-        x: Domain.getDomain(props, "x"),
-        y: Domain.getDomain(props, "y")
+        x: Domain.getDomain(modifiedProps, "x"),
+        y: Domain.getDomain(modifiedProps, "y")
       }
     };
   }
 
-  renderData(props) {
-    const scatterProps = omit(props, [
-      "containerComponent", "standalone", "animate", "forces", "linkComponent",
-      "alpha", "alphaDecay", "style"
+  renderNodes(props) {
+    const scatterProps = pick(props, [
+      "groupComponent", "height", "width", "domain", "theme", "events", "x",
+      "y", "labels", "labelComponent", "size", "padding"
     ]);
 
     return (
       <VictoryScatter
         {...scatterProps}
+        data={props.nodes}
+        dataComponent={props.nodeComponent}
         standalone={false}
-        style={pick(props.style, ["labels", "data"])}
+        style={{
+          data: props.style.nodes,
+          labels: props.style.labels,
+          parent: props.style.parent,
+        }}
       />
     );
   }
@@ -200,20 +208,20 @@ export default class VictoryForce extends React.Component {
     );
   }
 
-  renderGroup(data, links) {
+  renderGroup(nodes, links) {
     return React.cloneElement(
       this.props.groupComponent,
       { role: "presentation" },
       links,
-      data
+      nodes
     );
   }
 
   render() {
     const props = this.getProps(this.props);
-    const data = this.renderData(props);
+    const nodes = this.renderNodes(props);
     const links = this.renderLinks(props);
-    const group = this.renderGroup(data, links);
+    const group = this.renderGroup(nodes, links);
     return props.standalone ? this.renderContainer(props, group) : group;
   }
 }

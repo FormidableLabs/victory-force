@@ -44,7 +44,7 @@ export default class App extends React.Component {
           <div>click a node to remove it (and its links)</div>
 
           <VictoryForce
-            data={this.state.nodes}
+            nodes={this.state.nodes}
             links={this.state.links}
             forces={{
               charge: forceManyBody(),
